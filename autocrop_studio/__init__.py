@@ -1,0 +1,1 @@
+"""PARYAS AutoCrop Studio."""
