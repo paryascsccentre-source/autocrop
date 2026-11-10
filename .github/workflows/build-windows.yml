@@ -1,23 +1,31 @@
-name: Build Windows desktop app
+name: Test and build Windows desktop app
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
 
 jobs:
-  build:
+  test-and-build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: python -m pip install --upgrade pip
-      - run: pip install -r requirements.txt pyinstaller
-      - run: pyinstaller --noconfirm --clean --windowed --name PARYAS-AutoCrop --collect-all cv2 --collect-all PySide6 main.py
-      - uses: actions/upload-artifact@v4
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest pyinstaller
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Build Windows desktop app
+        run: pyinstaller --noconfirm --clean --windowed --name PARYAS-AutoCrop --collect-all cv2 --collect-all PySide6 main.py
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
         with:
           name: PARYAS-AutoCrop-Windows
           path: dist/PARYAS-AutoCrop/
+          if-no-files-found: error
